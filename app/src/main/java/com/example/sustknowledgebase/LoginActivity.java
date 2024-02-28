@@ -1,7 +1,7 @@
 package com.example.sustknowledgebase;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.service.autofill.UserData;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,21 +10,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.sustknowledgebase.models.AuthToken;
-import com.example.sustknowledgebase.models.LoggeInUserAuthToken;
-import com.example.sustknowledgebase.models.UserProfile;
+import com.example.sustknowledgebase.models.RetrofitManager;
 import com.example.sustknowledgebase.networking.ApiClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Collections;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -53,44 +47,21 @@ public class LoginActivity extends AppCompatActivity {
                 String password = etPassword.getText().toString();
 
                 if (validaInputs(username, password)){
-                    Retrofit retrofit = new Retrofit.Builder()
-                            .baseUrl("http://192.168.0.192:8080/")
-                            .addConverterFactory(ScalarsConverterFactory.create())
-                            .build();
 
-                    ApiClient apiClient = retrofit.create(ApiClient.class);
+
+                    ApiClient apiClient = RetrofitManager.getRetrofitManagerSingletonInstance().getRetrofit().create(ApiClient.class);
 
                     apiClient.getAuthToken(username, password).enqueue(new Callback<String>() {
                         @Override
                         public void onResponse(Call<String> call, Response<String> response) {
                             if(response.isSuccessful()){
-                                LoggeInUserAuthToken user = new LoggeInUserAuthToken();
                                 try {
                                     JSONObject token = new JSONObject(response.body());
-                                    user.setToken(token.getString("token"));
-//                                    Toast.makeText(LoginActivity.this, "Welcome " + token.getString("token"), Toast.LENGTH_LONG).show();
-                                    apiClient.getProfile(Collections.singletonMap("Authorization", "Token "+token.getString("token"))).enqueue(new Callback<String>() {
-                                        @Override
-                                        public void onResponse(Call<String> call, Response<String> response) {
-                                            if (response.isSuccessful()){
-                                                try {
-                                                    JSONObject profile = new JSONObject(response.body());
-                                                    Toast.makeText(LoginActivity.this, profile.toString(), Toast.LENGTH_LONG).show();
-                                                } catch (JSONException e) {
-                                                    Toast.makeText(LoginActivity.this, "Error parsing profile", Toast.LENGTH_SHORT).show();
-                                                    tvSignUp.setText(e.toString());
-
-                                                    throw new RuntimeException(e);
-                                                }
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<String> call, Throwable t) {
-                                            Toast.makeText(LoginActivity.this, "Fail in profile fretch", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                    finish();
+                                    RetrofitManager retrofitManager = RetrofitManager.getRetrofitManagerSingletonInstance();
+                                    retrofitManager.setToken(token.getString("token"));
+                                    Toast.makeText(LoginActivity.this, "Welcome", Toast.LENGTH_LONG).show();
+                                    openActivityMain();
+//                                    finish();
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -132,6 +103,10 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public void openActivityMain(){
+        startActivity(new Intent(this, MainActivity.class));
     }
 
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Retrofit;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -15,10 +16,6 @@ import retrofit2.http.POST;
 
 
 public interface ApiClient {
-    static final String base_url = "http://192.168.0.192:8080/";
-    public static Retrofit retrofit = null;
-
-    String token = null;
 
     @FormUrlEncoded
     @POST("api-token-auth/")

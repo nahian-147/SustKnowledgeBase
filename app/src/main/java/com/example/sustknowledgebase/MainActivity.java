@@ -1,70 +1,59 @@
 package com.example.sustknowledgebase;
 
 import android.os.Bundle;
-import android.view.View;
-import android.view.Menu;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.sustknowledgebase.models.LoggeInUserAuthToken;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.sustknowledgebase.databinding.ActivityMainBinding;
+import com.example.sustknowledgebase.models.RetrofitManager;
+import com.example.sustknowledgebase.networking.ApiClient;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Collections;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
-
-    private AppBarConfiguration mAppBarConfiguration;
-    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(R.layout.activity_main);
-
-        setSupportActionBar(binding.appBarMain.toolbar);
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
+        RetrofitManager retrofitManager = RetrofitManager.getRetrofitManagerSingletonInstance();
+        Retrofit retrofit = retrofitManager.getRetrofit();
+        String token = retrofitManager.getToken();
+        Toast Toast = null;
+        TextView tvProfile = findViewById(R.id.tvProfile);
+        TextView tvToken = findViewById(R.id.tvToken);
+//        tvToken.setText(token);
+        ApiClient apiClient = retrofit.create(ApiClient.class);
+        apiClient.getProfile(Collections.singletonMap("Authorization", "Token "+token)).enqueue(new Callback<String>() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()){
+                    try {
+                        JSONObject profile = new JSONObject(response.body());
+                        Toast.makeText(MainActivity.this, profile.toString(), Toast.LENGTH_LONG).show();
+                        tvProfile.setText(profile.toString());
+                        tvToken.setText(token);
+
+                    } catch (JSONException e) {
+                        Toast.makeText(MainActivity.this, "Error parsing profile", Toast.LENGTH_SHORT).show();
+
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Fail in profile fretch", Toast.LENGTH_SHORT).show();
             }
         });
-        LoggeInUserAuthToken userAuthToken = new LoggeInUserAuthToken();
-        TextView tvToken = findViewById(R.id.tvToken);
-        tvToken.setText(userAuthToken.getToken());
-        DrawerLayout drawer = binding.drawerLayout;
-        NavigationView navigationView = binding.navView;
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow)
-                .setOpenableLayout(drawer)
-                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
     }
 }

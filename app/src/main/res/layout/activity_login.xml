@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LoginActivity"
-    tools:theme="@style/Theme.QuizForFun">
+    tools:theme="@style/Base.CardView">
 
     <TextView
         android:id="@+id/tvSignUp2"
