@@ -1,6 +1,7 @@
 package com.example.sustknowledgebase;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -46,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                 String username = etUsername.getText().toString();
                 String password = etPassword.getText().toString();
 
-                if (validaInputs(username, password)){
+                if (validateInputs(username, password)){
 
 
                     ApiClient apiClient = RetrofitManager.getRetrofitManagerSingletonInstance().getRetrofit().create(ApiClient.class);
@@ -55,15 +56,16 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<String> call, Response<String> response) {
                             if(response.isSuccessful()){
-                                try {
-                                    JSONObject token = new JSONObject(response.body());
-                                    RetrofitManager retrofitManager = RetrofitManager.getRetrofitManagerSingletonInstance();
-                                    retrofitManager.setToken(token.getString("token"));
-                                    Toast.makeText(LoginActivity.this, "Welcome", Toast.LENGTH_LONG).show();
-                                    openActivityMain();
-//                                    finish();
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                if (response.code() == 200) {
+                                    try {
+                                        JSONObject token = new JSONObject(response.body());
+                                        RetrofitManager retrofitManager = RetrofitManager.getRetrofitManagerSingletonInstance();
+                                        retrofitManager.setToken(token.getString("token"));
+                                        Toast.makeText(LoginActivity.this, "Welcome", Toast.LENGTH_LONG).show();
+                                        openActivityMain();
+                                    } catch (JSONException e) {
+                                        throw new RuntimeException(e);
+                                    }
                                 }
                             }
                             else{
@@ -84,13 +86,13 @@ public class LoginActivity extends AppCompatActivity {
         tvSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                startActivity(new Intent(LoginActivity.this,RegisterActivity.class));
-            }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://192.168.0.192:8080/register/"));
+                startActivity(browserIntent);            }
         });
 
     }
 
-    private boolean validaInputs(String username, String password) {
+    private boolean validateInputs(String username, String password) {
 
         if (username.isEmpty()){
             Toast.makeText(this, getString(R.string.username_cannot_empty), Toast.LENGTH_SHORT).show();

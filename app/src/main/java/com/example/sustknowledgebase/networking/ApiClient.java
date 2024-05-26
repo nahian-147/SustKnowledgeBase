@@ -1,6 +1,7 @@
 package com.example.sustknowledgebase.networking;
 
 import com.example.sustknowledgebase.models.AuthToken;
+import com.example.sustknowledgebase.models.StudentInfo;
 import com.example.sustknowledgebase.models.UserProfile;
 
 import java.util.Map;
@@ -23,4 +24,10 @@ public interface ApiClient {
 
     @GET("api/profile/")
     Call<String> getProfile(@HeaderMap Map<String, String> headers);
+
+    @FormUrlEncoded
+    @POST("api/register-role/")
+    Call<String> postStudentInfo(@HeaderMap Map<String, String> headers,
+                                 @Field("role_id") String roleID,
+                                 @Field("student_info") String studentInfo);
 }
